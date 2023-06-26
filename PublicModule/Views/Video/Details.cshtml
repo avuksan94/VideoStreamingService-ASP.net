@@ -1,0 +1,35 @@
+﻿@using System.Text;
+@model VMPublicVideo
+
+@{
+    StringBuilder sb = new StringBuilder();
+    string tags;
+    var timeConvert = Model.TotalSeconds / 60;
+
+    foreach (var tag in Model.VideoTags)
+    {
+        sb.Append("[" + tag.Tag.Name + "]");
+    }
+    tags = sb.ToString();
+}
+
+<div>
+    <a class="btn btn-warning" asp-action="Index">Back to List</a>
+</div>
+<br/>
+
+<div class="card text-lg-start">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Name</h5>
+        <img src="@Model.Image.Content" height="300" width="500">
+        <p class="card-text">Description: @Model.Description</p>
+        <p class="card-text">Duration: @timeConvert mins</p>
+        <a href="@Model.StreamingUrl" class="btn btn-primary">Video link</a>
+        <p class="card-text">Genre: @Model.Genre.Name</p>
+        <p class="card-text">Tags: @tags</p>
+    </div>
+    <div class="card-footer text-muted">
+        Added on: @Model.CreatedAt;
+    </div>
+</div>
+<br />

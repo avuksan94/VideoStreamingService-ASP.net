@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Bare - Start Bootstrap Template</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- Responsive navbar-->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Clonefy App</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            </div>
+        </div>
+    </nav>
+    <!-- Page content-->
+    <div class="container">
+        <div class="text-center mt-5">
+            <button id="sendNotificationsButton" class="btn btn-primary">Send Notifications</button>
+            <span id="unsentNotificationsCount"></span>
+        </div>
+    </div>
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="js/scripts.js"></script>
+    <script>
+        // Add an event listener to the button
+        document.getElementById("sendNotificationsButton").addEventListener("click", function () {
+            sendNotifications();
+        });
+
+        function sendNotifications() {
+            const unsentNotificationsCountElement = document.getElementById('unsentNotificationsCount');
+            const unsentNotificationsCount = parseInt(unsentNotificationsCountElement.innerText.split(": ")[1]);
+
+            // Check if there are any unsent notifications
+            if (unsentNotificationsCount > 0) {
+                fetch('/api/Notifications/SendAllNotifications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Notifications sent successfully!');
+                            location.reload()
+                        } else {
+                            alert('Failed to send notifications.');
+                        }
+                    })
+                    .catch(error => {
+                        alert('An error occurred while sending notifications.');
+                    });
+            } else {
+                alert('No unsent notifications to send.');
+            }
+        }
+
+        function updateUnsentNotificationsCount() {
+            fetch('/api/Notifications/GetNumberOfUnsentNotifications')
+                .then(response => response.json())
+                .then(data => {
+                    const unsentNotificationsCountElement = document.getElementById('unsentNotificationsCount');
+                    unsentNotificationsCountElement.innerText = `Unsent messages: ${data}`;
+                })
+                .catch(error => {
+                    console.error('Error retrieving unsent notifications count:', error);
+                });
+        }
+
+        // This event listener will run updateUnsentNotificationsCount() when the page has finished loading
+        document.addEventListener('DOMContentLoaded', function () {
+            updateUnsentNotificationsCount();
+        });
+    </script>
+</body>
+</html>

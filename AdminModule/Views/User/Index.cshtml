@@ -1,0 +1,76 @@
+﻿@model IEnumerable<VMUser>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Add User</a> <a class="btn btn-primary" asp-action="Index" asp-route-clearFilter="true">Clear Search</a>
+</p>
+
+@using (Html.BeginForm("Index", "User", FormMethod.Get))
+{
+    <div class="input-group rounded">
+        <input type="search" class="form-control rounded" id="searchQuery" name="searchQuery" placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
+        <span class="input-group-text border-0" id="search-addon">
+            <i class="fas fa-search"></i>
+        </span>
+    </div>
+}
+
+<br>
+<div>
+    <div>
+        <strong>Sort by:</strong>
+        <select id="sortOrder" onchange="location = this.value;">
+            <option value="">Select...</option>
+            <option value="@Url.Action("Index", new { sortOrder = "First name" })">First name</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Last name" })">Last name</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Username" })">Username</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Country" })">Country</option>
+
+            <option value="@Url.Action("Index", new { sortOrder = "First name desc" })">First name desc</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Last name desc" })">Last name desc</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Username desc" })">Username desc</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Country desc" })">Country desc</option>
+
+        </select>
+    </div>
+</div>
+
+<br>
+
+@foreach (var user in Model) {
+    if (user.DeletedAt is null) {
+        if (user.IsConfirmed == true)
+        {
+            <div class="card text-white bg-success">
+                <h5 class="card-header">Username: @user.Username</h5>
+                <div class="card-body">
+                    <h5 class="card-title">Full name: @user.FirstName @user.LastName</h5>
+                    <p class="card-text"><strong>Email: </strong> @user.Email, <strong>Phone: </strong>@user.Phone</p>
+                    <p class="card-text"><strong>Country of Residence: </strong>@user.CountryOfResidence.Name</p>
+                    @Html.ActionLink("Edit", "Edit", new { id=user.Id }, new { @class = "btn btn-warning" }) 
+                    @Html.ActionLink("Details", "Details", new { id=user.Id }, new { @class = "btn btn-primary" }) 
+                    @Html.ActionLink("Delete", "Delete", new { id=user.Id }, new { @class = "btn btn-danger" })
+                </div>
+            </div>
+            <br />
+        }
+        else if (user.IsConfirmed == false)
+        {
+            <div class="card text-white bg-info">
+                <h5 class="card-header">ACCOUNT DISABLED Username: @user.Username</h5>
+                <div class="card-body">
+                    <h5 class="card-title">Full name: @user.FirstName @user.LastName</h5>
+                    <p class="card-text"><strong>Email: </strong> @user.Email, <strong>Phone: </strong>@user.Phone</p>
+                    <p class="card-text"><strong>Country of Residence: </strong>@user.CountryOfResidence.Name</p>
+                    @Html.ActionLink("Edit", "Edit", new { id=user.Id }, new { @class = "btn btn-warning" })
+                    @Html.ActionLink("Details", "Details", new { id=user.Id }, new { @class = "btn btn-primary" })
+                    @Html.ActionLink("Delete", "Delete", new { id=user.Id }, new { @class = "btn btn-danger" })
+                </div>
+            </div>
+            <br />
+        }
+    }
+}

@@ -1,0 +1,116 @@
+﻿@using System.Text;
+@using AdminModule.Pages;
+@model IEnumerable<VMVideo>
+
+@{
+    ViewData["Title"] = "Index";
+    int numRows = 3;
+    int cardsPerRow = Model.ToList().Count / numRows;
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+
+<h1>Videos</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Add video</a> <a class="btn btn-primary" asp-action="Index" asp-route-clearFilter="true">Clear Search</a>
+</p>
+
+@using (Html.BeginForm("Index", "Video", FormMethod.Get))
+{
+    <div class="input-group rounded">
+        <input type="search" class="form-control rounded" id="searchQuery" name="searchQuery" placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
+        <span class="input-group-text border-0" id="search-addon">
+            <i class="fas fa-search"></i>
+        </span>
+    </div>
+
+    <br>
+    <div class="containter">
+        @if (pager.TotalPages > 0)
+        {
+            <h4>Page:</h4>
+            <ul class="pagination justify-content-lg-begin">
+                @for (var pg = pager.StartPage; pg <= pager.EndPage; pg++)
+                {
+                    <li class="page-item @(pg == pager.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-controller="Video" asp-action="Index" asp-route-page="@pg" asp-route-sortOrder="@ViewBag.CurrentSortOrder">@pg</a>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+}
+
+
+
+<br>
+<div>
+    <div>
+        <strong>Sort by:</strong>
+        <select id="sortOrder" onchange="location = this.value;">
+            <option value="">Select...</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Name" })">Name</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Genre" })">Genre</option>
+
+            <option value="@Url.Action("Index", new { sortOrder = "Name desc" })">Name desc</option>
+            <option value="@Url.Action("Index", new { sortOrder = "Genre desc" })">Genre desc</option>
+
+        </select>
+    </div>
+</div>
+
+<br>
+
+@foreach (var video in Model)
+{
+    StringBuilder sb = new StringBuilder();
+    string tags;
+    var timeConvert = video.TotalSeconds / 60;
+    foreach (var tag in video.VideoTags)
+    {
+        sb.Append("[" + tag.Tag.Name + "]");
+    }
+    tags = sb.ToString();
+    <div class="card text-lg-start">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <img src="@video.Image.Content" class="img-fluid rounded-start" alt="...">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">@video.Name</h5>
+                    <p class="card-text">Description: @video.Description</p>
+                    <p class="card-text">Duration: @timeConvert mins</p>
+                    <a href="@video.StreamingUrl" class="card-link">Video link</a>
+                    <p class="card-text">Genre: @video.Genre.Name</p>
+                    <p class="card-text">Tags: @tags</p>
+                    @Html.ActionLink("Edit", "Edit", new { id = video.Id }, new { @class = "btn btn-primary" })
+                    @Html.ActionLink("Delete", "Delete", new { id = video.Id }, new { @class = "btn btn-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-muted">
+            Added on: @video.CreatedAt;
+        </div>
+    </div>
+    <br />
+}
+
+@section Scripts {
+    @{
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                document.getElementById('pageSize').value = '@ViewBag.PageSize';
+            });
+        </script>
+    }
+}

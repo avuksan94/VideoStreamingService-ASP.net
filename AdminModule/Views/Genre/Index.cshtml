@@ -1,0 +1,250 @@
+﻿@model IEnumerable<VMGenre>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Genres</h1>
+
+<p>
+    <button class="btn btn-primary" type="submit" id="ajaxAdd">Add Genre</button>
+
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="itemList">
+            
+    </tbody>
+</table>
+
+<div id="createTable">
+</div>
+
+<!-- MODAL Create-->
+<div class="modal fade" id="genreModal" tabindex="-1" role="dialog" aria-labelledby="genreModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"> 
+                <h5 class="modal-title" id="genreModalLabel">Create Genre</h5>
+            </div>
+            <div class="modal-body">
+                <div class ="form-group">
+                    <label for="genreName" style="display: block; margin-bottom: 10px;">Genre Name</label>
+                     <input type="text" id="genreName" required>
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="genreDescription" style="display: block; margin-bottom: 10px;">Description</label>
+                    <textarea id="genreDescription" required style="width:100%"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" id="save">Add</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL Update-->
+<div class="modal fade" id="genreModalUpdate" tabindex="-1" role="dialog" aria-labelledby="genreModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header"> 
+                <h5 class="modal-title" id="genreModalLabel">Create Genre</h5>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="genreId">
+                <div class ="form-group">
+                    <label for="genreUpdateName" style="display: block; margin-bottom: 10px;">Genre Name</label>
+                     <input type="text" id="genreUpdateName" required>
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="genreUpdateDescription" style="display: block; margin-bottom: 10px;">Description</label>
+                    <textarea id="genreUpdateDescription" required style="width:100%"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" id="update">Update</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="closeUpdate">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+    {
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+            $.ajax({
+                url: '/Genre/GetGenres',
+                type: 'GET',
+                success: function (response) {
+                    // Handle success
+                    var genres = response.vmGenres;
+                    var itemList = $('#itemList');
+                    var createTable = $('#createTable');
+
+                    itemList.empty();
+
+                    genres.forEach(function (genre) {
+                        var tableRow = $('<tr>');
+                        var nameCell = $('<td>').text(genre.name);
+                        var descriptionCell = $('<td>').text(genre.description);
+                        var actionCell = $('<td>');
+
+                        var editButton = $('<button>').addClass('btn btn-warning').text('Edit').attr('id', 'edit-genre-' + genre.id).data('id', genre.id);
+                        var deleteButton = $('<button>').addClass('btn btn-danger').text('Delete').data('id', genre.id);
+
+                        actionCell.append(editButton, '    ', deleteButton);
+
+                        tableRow.append(nameCell, descriptionCell ,actionCell);
+                        itemList.append(tableRow);
+                    });
+                },
+                error: function (error) {
+                    // Handle error
+                    console.error('Error retrieving genres:', error);
+                }
+            });
+        });
+
+        $("#ajaxAdd").click(function () {
+            console.log("Button ajaxAdd clicked");
+            $('#genreModal').modal('show');
+        });
+
+
+        $("#close").click(function () {
+            console.log("Close button clicked");
+            $('#genreModal').modal('hide');
+        });
+
+        $("#closeUpdate").click(function () {
+            console.log("Close button clicked");
+            $('#genreModalUpdate').modal('hide');
+        });
+
+        $("#save").click(function () {
+            var genreNameInput = $('#genreName');
+            var genreDescriptionInput = $('#genreDescription');
+
+            // Manual validation
+            if (!genreNameInput.val() || !genreDescriptionInput.val()) {
+                alert("Both Genre name and Description are required!");
+                return false;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/Genre/Create",
+                contentType: 'application/json',  
+                data: JSON.stringify({  
+                    Name: genreNameInput.val(),
+                    Description: genreDescriptionInput.val()
+                }),
+                success: function (data) {
+                    console.log("Ajax POST success");
+                    console.log(data);
+                    // ovo mi je za reloadanje stranice nakon dodavanja/updatea
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log("Ajax POST error");
+                    console.log(error);
+                }
+            });
+
+        });
+        
+        //Edit
+        $("#update").click(function () {
+            var genreNameInput = $('#genreUpdateName');
+            var genreDescriptionInput = $('#genreUpdateDescription');
+
+            // Manual validation
+            if (!genreNameInput.val() || !genreDescriptionInput.val()) {
+                alert("Both Genre name and Description are required!");
+                return false;
+            }
+
+            $.ajax({
+                type: "PUT",
+                url: "/Genre/Edit/" + $('#genreId').val(),
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    Name: genreNameInput.val(),
+                    Description: genreDescriptionInput.val()
+                }),
+                success: function (data) {
+                    console.log("Ajax PUT success");
+                    console.log(data);
+                    // ovo mi je za reloadanje stranice nakon updatea
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log("Ajax PUT error");
+                    console.log(error);
+                }
+            });
+
+        });
+
+        
+        $('#itemList').on('click', '.btn-warning', function () {
+            var genreId = $(this).data('id');
+            $.ajax({
+                type: 'GET',
+                url: '/Genre/GetGenre/' + genreId,
+                success: function (data) {
+                    $('#genreId').val(genreId); 
+                    $('#genreName').val(data.name);
+                    $('#genreDescription').val(data.description);
+                    
+                    $('#genreModalUpdate').modal('show');
+                },
+                error: function (error) {
+                    console.log("Ajax GET error");
+                    console.log(error);
+                }
+            });
+        });
+
+        //Delete
+        $('#itemList').on('click', '.btn-danger', function () {
+            var genreId = $(this).data('id');
+            $.ajax({
+                type: 'DELETE',
+                url: '/Genre/Delete/' + genreId,
+                success: function (data) {
+                    console.log("Genre has been deleted.");
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log("Ajax DELETE error");
+                    console.log(error);
+                }
+            });
+        });
+
+
+
+    </script>
+}

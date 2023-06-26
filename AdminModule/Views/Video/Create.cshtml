@@ -1,0 +1,124 @@
+﻿@model VMVideo
+
+@{
+    ViewData["Title"] = "Create";
+    
+}
+<style>
+
+    .scrollable-gallery {
+        max-height: 300px; 
+        overflow-y: auto;
+    }
+
+    .selected {
+        border: 4px solid #007bff;
+    }
+</style>
+
+
+<h1 class=" row justify-content-center">Create Video</h1>
+<hr />
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="GenreId" class="control-label"></label>
+                <select asp-for="GenreId" class ="form-control" asp-items="ViewBag.GenreId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="TotalSeconds" class="control-label"></label>
+                <input asp-for="TotalSeconds" class="form-control" />
+                <span asp-validation-for="TotalSeconds" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StreamingUrl" class="control-label"></label>
+                <input asp-for="StreamingUrl" class="form-control" />
+                <span asp-validation-for="StreamingUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Image</label>
+                <input type="hidden" asp-for="ImageId" />
+            </div>
+            <!-- Gallery -->
+            <div class="row scrollable-gallery">
+                @foreach (var image in (IEnumerable<VMImage>)ViewBag.Images)
+                {
+                    <div class="col-lg-4 col-md-12 mb-4 mb-lg-0">
+                        <img id="image@image.Id"
+                         src="@image.Content"
+                         class="w-100 shadow-1-strong rounded mb-4"
+                         alt="Image"
+                         onclick="selectImage('@image.Id', this); viewImage('@image.Content');"
+                         style="cursor: pointer;" />
+                    </div>
+                }
+            </div>
+            <!-- Gallery -->
+            <div class="form-group">
+                <label asp-for="NewTags" class="control-label">New Tags:</label>
+                <input asp-for="NewTags" class="form-control" />
+                <span asp-validation-for="NewTags" class="text-danger"></span>
+            </div>
+            <br/>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />   <a class="btn btn-warning" asp-action="Index">Back to List</a>
+            </div>
+            
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img id="modalImage" class="img-fluid" src="" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        var selectedImage = null;
+
+        function selectImage(imageId, element) {
+            document.getElementById('ImageId').value = imageId;
+
+            if (selectedImage != null) {
+                selectedImage.classList.remove('selected');
+            }
+
+            element.classList.add('selected');
+            selectedImage = element;
+        }
+
+        function viewImage(imageSrc) {
+            document.getElementById('modalImage').src = imageSrc;
+            $('#imageModal').modal('show');
+        }
+
+        //By default i want the first image to be selected if the user doesnt select any image
+        window.onload = function () {
+            var firstImageElement = document.querySelector('.scrollable-gallery img');
+            if (firstImageElement) {
+                selectImage(firstImageElement.id.replace('image', ''), firstImageElement);
+                //viewImage(firstImageElement.src);
+            }
+        }
+    </script>
+}
