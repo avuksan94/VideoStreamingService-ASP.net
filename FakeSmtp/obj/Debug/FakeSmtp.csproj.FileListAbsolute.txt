@@ -1,8 +1,0 @@
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\bin\Debug\FakeSmtp.exe
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\bin\Debug\FakeSmtp.exe.config
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\bin\Debug\FakeSmtp.pdb
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\obj\Debug\FakeSmtp.csproj.AssemblyReference.cache
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\obj\Debug\FakeSmtp.csproj.SuggestedBindingRedirects.cache
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\obj\Debug\FakeSmtp.csproj.CoreCompileInputs.cache
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\obj\Debug\FakeSmtp.exe
-C:\Users\antev\source\repos\RWA\RwaProjekt\FakeSmtp\obj\Debug\FakeSmtp.pdb

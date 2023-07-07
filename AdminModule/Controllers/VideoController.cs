@@ -149,48 +149,33 @@ namespace AdminModule.Controllers
         {
             try
             {
-                var allTags = await _tagService.GetAllTags();
-                var allVideos = await _videoService.GetAllVideos();
-
                 string[] tags = video.NewTags.Split(',');
-                var videoTags = tags.ToList();
+                var allTags = await _tagService.GetAllTags();
+                var existingTags = allTags.Where(t => tags.Contains(t.Name));
 
-                var addTags = new List<BLVideoTag>();
-                foreach (var tag in videoTags)
+                var dbVideo = new BLL.Models.BLVideo
                 {
-                    var tagAlreadyExists = allTags.FirstOrDefault(t => t.Name == tag);
+                    Id = video.Id,
+                    CreatedAt = video.CreatedAt,
+                    Name = video.Name,
+                    Description = video.Description,
+                    GenreId = video.GenreId,
+                    TotalSeconds = video.TotalSeconds,
+                    StreamingUrl = video.StreamingUrl,
+                    ImageId = video.ImageId,
+                    VideoTags = existingTags.Select(t => new BLVideoTag { TagId = t.Id }).ToList()
+                };
 
-                    if (tagAlreadyExists == null)
+                foreach (var tag in tags)
+                {
+                    if (!allTags.Any(t => t.Name == tag))
                     {
-                        //Ako ne postoji tag, dodaj ga
-                        var newTag = new BLTag
-                        {
-                            Name = tag
-                        };
-                        await _tagService.AddTag(newTag);
-                        addTags.Add(new BLVideoTag { Tag = newTag }); // kreiraj tag i dodaj ga u listu
-                    }
-                    else
-                    {
-                        addTags.Add(new BLVideoTag { TagId = tagAlreadyExists.Id }); // kreiraj relaciju i dodaj u listu
+                        var newTag = new BLTag { Name = tag };
+                        dbVideo.VideoTags.Add(new BLVideoTag { Tag = newTag });
                     }
                 }
 
-                await _videoService.AddVideo(
-                         new BLL.Models.BLVideo
-                         {
-                             Id = video.Id,
-                             CreatedAt = video.CreatedAt,
-                             Name = video.Name,
-                             Description = video.Description,
-                             GenreId = video.GenreId,
-                             TotalSeconds = video.TotalSeconds,
-                             StreamingUrl = video.StreamingUrl,
-                             ImageId = video.ImageId,
-                             VideoTags = addTags
-                         }
-                     );
-
+                await _videoService.AddVideo(dbVideo);
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -216,7 +201,6 @@ namespace AdminModule.Controllers
         {
             try
             {
-
                 var dbVideo = await _videoService.GetVideoById(id);
 
                 dbVideo.Id = video.Id;

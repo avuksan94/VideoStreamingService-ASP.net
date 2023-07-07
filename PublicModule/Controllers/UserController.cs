@@ -177,11 +177,6 @@ namespace PublicModule.Controllers
                 string registrationSubject = "Account registration RWAMovies app";
                 string registrationBody = "User Successfuly created";
 
-                var allNotifications = await _notificationService.GetAllNotifications();
-                var registrationNotification =
-                        allNotifications.Where(
-                            x => !x.SentAt.HasValue && x.Subject == registrationSubject);
-
                 await _userService.AddUser(
                          new DAL.Requests.UserRequest
                          {
@@ -205,8 +200,6 @@ namespace PublicModule.Controllers
 
                 var dbNotification = _mapper.Map<BLNotification>(vmNotification);
 
-                await _notificationService.AddNotification(dbNotification);
-
                 // Create and send mail!
                 var mail = new MailMessage(
                             from: new MailAddress(sender),
@@ -218,13 +211,12 @@ namespace PublicModule.Controllers
                 try
                 {
                     client.Send(mail);
-
-                    dbNotification.SentAt = DateTime.UtcNow;
-                    await _notificationService.UpdateNotification(dbNotification);
-                }
+                    dbNotification.SentAt = DateTime.Now;
+                    await _notificationService.AddNotification(dbNotification);
+                } //ukoliko ne radi smtp, kreiraj notifikaciju ali ne smije biti poslana!
                 catch (SmtpException ex)
                 {
-                    // I need this when the Smtp service is not available
+                    await _notificationService.AddNotification(dbNotification);
                 }
 
                 // Validation of the user

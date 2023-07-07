@@ -148,11 +148,6 @@ namespace AdminModule.Controllers
                 string registrationSubject = "Account registration RWAMovies app";
                 string registrationBody = "Folow this URL to validate your account: DUMMY URL";
 
-                var allNotifications = await _notificationService.GetAllNotifications();
-                var registrationNotification =
-                        allNotifications.Where(
-                            x => !x.SentAt.HasValue && x.Subject == registrationSubject);
-
                 await _userService.AddUser(
                          new DAL.Requests.UserRequest
                          {
@@ -174,8 +169,6 @@ namespace AdminModule.Controllers
                     CreatedAt = DateTime.Now
                 };
 
-                await _notificationService.AddNotification(dbNotification);
-
                 //Kreiraj i salji mail!
                 var mail = new MailMessage(
                             from: new MailAddress(sender),
@@ -184,13 +177,17 @@ namespace AdminModule.Controllers
                 mail.Subject = dbNotification.Subject;
                 mail.Body = dbNotification.Body;
 
-                client.Send(mail);
-
-                dbNotification.SentAt = DateTime.UtcNow;
-                _notificationService.SaveNotificationData();
-
-
-
+                try
+                {
+                    client.Send(mail);
+                    dbNotification.SentAt = DateTime.Now;
+                    await _notificationService.AddNotification(dbNotification);
+                } //ukoliko ne radi smtp, kreiraj notifikaciju ali ne smije biti poslana!
+                catch (SmtpException ex)
+                {
+                    await _notificationService.AddNotification(dbNotification);
+                }
+               
                 return RedirectToAction(nameof(Index));
             }
             catch

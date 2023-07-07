@@ -22,6 +22,13 @@ namespace BLL.Services
             _mapper = mapper;
         }
 
+        public async Task<IEnumerable<BLVideo>> GetAllVideosLazy()
+        {
+            var dbVideos = await _unitOfWork.VideoRepository.GetAsync();
+            var blVideos = _mapper.Map<IEnumerable<BLVideo>>(dbVideos);
+            return blVideos;
+        }
+
 
         public async Task<IEnumerable<BLVideo>> GetAllVideos()
         {

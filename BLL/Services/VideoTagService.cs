@@ -28,10 +28,22 @@ namespace BLL.Services
             await _unitOfWork.VideoTagRepository.InsertAsync(videoTag);
             await _unitOfWork.SaveAsync();
         }
+
+        public async Task AddVideoTagWithoutSave(BLVideoTag blVideoTag)
+        {
+            var videoTag = _mapper.Map<VideoTag>(blVideoTag);
+            await _unitOfWork.VideoTagRepository.InsertAsync(videoTag);
+        }
+
         public async Task DeleteVideoTag(int id)
         {
             await _unitOfWork.VideoTagRepository.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
+        }
+
+        public async Task DeleteVideoTagWithoutSave(BLVideoTag bLVideoTag)
+        {
+            await _unitOfWork.VideoTagRepository.DeleteAsync(bLVideoTag);
         }
 
         public async Task SaveVideoData() => await _unitOfWork.SaveAsync();

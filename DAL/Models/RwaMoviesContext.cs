@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace DAL.Models;
 
@@ -33,7 +36,7 @@ public partial class RwaMoviesContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer("server=LAPTOP-NBBKSAK4;Database=RwaMovies;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true");
+        optionsBuilder.UseSqlServer("Name=ConnectionStrings:RWAConnStr");
     }
      protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -18,10 +18,9 @@ using DAL.Repo;
 
 namespace IntegrationModule.Controllers
 {
-    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
 
     //Controller is protected the Token is only valid for 10 minutes
     public class VideosController : ControllerBase
@@ -74,7 +73,6 @@ namespace IntegrationModule.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
-
         // GET api/<VideoController>/5
         [HttpGet("[action]")]
         public async Task<ActionResult<VideoResponse>> GetVideo(int id)
@@ -117,32 +115,9 @@ namespace IntegrationModule.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var allTags = await _tagService.GetAllTags();
-                var allVideos = await _videoService.GetAllVideos();
-
                 string[] tags = request.Tags.Split(',');
-                var videoTags = tags.ToList();
-
-                var addTags = new List<BLVideoTag>();
-                foreach (var tag in videoTags)
-                {
-                    var tagAlreadyExists = allTags.FirstOrDefault(t => t.Name == tag);
-
-                    if (tagAlreadyExists == null)
-                    {
-                        //Ako ne postoji tag, dodaj ga
-                        var newTag = new BLTag
-                        {
-                            Name = tag
-                        };
-                        await _tagService.AddTag(newTag);
-                        addTags.Add(new BLVideoTag { Tag = newTag }); // kreiraj tag i dodaj ga u listu
-                    }
-                    else
-                    {
-                        addTags.Add(new BLVideoTag { TagId = tagAlreadyExists.Id }); // kreiraj relaciju i dodaj u listu
-                    }
-                }
+                var alldbTags = await _tagService.GetAllTags();
+                var dbTags = alldbTags.Where(x => tags.Contains(x.Name));
 
                 var dbVideo = new BLVideo
                 {
@@ -152,14 +127,21 @@ namespace IntegrationModule.Controllers
                     TotalSeconds = request.TotalTime,
                     StreamingUrl = request.StreamingUrl,
                     GenreId = request.GenreId,
-                    VideoTags = addTags
+                    VideoTags = dbTags.Select(x => new BLVideoTag { Tag = x }).ToList()
                 };
 
+                foreach (var tag in tags)
+                {
+                    if (!dbTags.Any(t => t.Name == tag))
+                    {
+                        var newTag = new BLTag { Name = tag };
+                        dbVideo.VideoTags.Add(new BLVideoTag { Tag = newTag });
+                    }
+                }
+
                 await _videoService.AddVideo(dbVideo);
-                await _videoService.SaveVideoData();
 
-
-                return Ok(new VideoResponse
+                var responseVideo = new VideoResponse
                 {
                     Name = dbVideo.Name,
                     Description = dbVideo.Description,
@@ -170,12 +152,16 @@ namespace IntegrationModule.Controllers
                     Tags = string.Join(",", dbVideo.VideoTags
                                         .Select(vt => vt.Tag)
                                         .Where(tag => tag != null)
-                                        .Select(tag => tag!.Name))
-                });
+                                        .Select(tag => tag.Name))
+                };
+
+                return Ok(responseVideo);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "There has been a problem while processing your request.");
             }
         }
 
@@ -186,7 +172,7 @@ namespace IntegrationModule.Controllers
         {
             try
             {
-                var videos = from s in await _videoService.GetAllVideos() select s;
+                var videos = from s in await _videoService.GetAllVideosLazy() select s;
 
                 //Ordering(default asc)
                 switch (sortBy)

@@ -60,11 +60,39 @@ namespace BLL.Services
             await _unitOfWork.SaveAsync();
         }
 
+        public async Task UpdateNotificationAdmin(BLNotification blNotification)
+        {
+            var existingNotification = await _unitOfWork.NotificationRepository.GetByIDAsync(blNotification.Id);
+
+            if (existingNotification == null)
+            {
+                return;
+            }
+            existingNotification.Subject = blNotification.Subject;
+            existingNotification.Body = blNotification.Body;
+            existingNotification.SentAt = blNotification.SentAt;
+
+            _mapper.Map(blNotification, existingNotification);
+
+            await _unitOfWork.NotificationRepository.UpdateAsync(existingNotification);
+            await _unitOfWork.SaveAsync();
+        }
+
         public async Task DeleteNotification(int id)
         {
             await _unitOfWork.NotificationRepository.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
         }
+
+        public async Task<BLNotification> GetNotificationByMail(string mail,string subject)
+        {
+            var dbNotifications = await _unitOfWork.NotificationRepository.GetAsync();
+            var dbNotification = dbNotifications.FirstOrDefault(n => n.ReceiverEmail == mail && n.Subject == subject);
+
+            return _mapper.Map<BLNotification>(dbNotification);
+        }
+
+
         public void SaveNotificationData() => _unitOfWork.Save();
     }
 }

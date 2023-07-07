@@ -19,6 +19,11 @@ namespace DAL.Repo
         private GenericRepository<Image>? imageRepository;
         private GenericRepository<VideoTag>? videoTagRepository;
 
+        public UnitOfWork(RwaMoviesContext context)
+        {
+            this.context = context;
+        }
+
         public GenericRepository<Video> VideoRepository
         {
             get

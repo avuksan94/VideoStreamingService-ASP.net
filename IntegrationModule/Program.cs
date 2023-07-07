@@ -23,10 +23,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(
     typeof(BLL.Mapping.AutoMapperProfile).Assembly);
 
-builder.Services.AddDbContext<RwaMoviesContext>(options =>
-{
-    options.UseSqlServer("server=LAPTOP-NBBKSAK4;Database=RwaMovies;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true");
-});
 
 builder.Services.AddControllers().AddJsonOptions(x =>
 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
@@ -39,6 +35,23 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<VideoTagService>();
+
+var currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+var environmentName = builder.Environment.EnvironmentName;
+
+builder.Configuration
+    .SetBasePath(currentDirectory)
+    .AddJsonFile("appsettings.json", false, true)
+    .AddJsonFile($"appsettings.{environmentName}.json", true, true)
+    .AddEnvironmentVariables();
+
+builder.Services.AddDbContext<RwaMoviesContext>(options =>
+{
+    options.UseSqlServer("name=ConnectionStrings:RWAConnStr");
+});
+
+
+
 
 //Configure JWT services
 builder.Services
